@@ -19,11 +19,15 @@ void SPI_DeselectFlash( void ) {
 }
 
 void SPI_SelectDisplay( void ) {
+#if defined Config_LCD_CS
     Config_SPI_PORT &= ~Config_LCD_CS;
+#endif
 }
 
 void SPI_DeselectDisplay( void ) {
+#if defined Config_LCD_CS
     Config_SPI_PORT |= Config_LCD_CS;
+#endif
 }
 
 void SPI_TX( const uint8_t Data ) {
@@ -42,10 +46,15 @@ void SPI_TX( const uint8_t Data ) {
 
 void SPI_Init( void ) {
     // Set needed lines as output
-    Config_SPI_DDR = Config_SPI_DO | Config_SPI_SCK | Config_Flash_CS | Config_LCD_CS;
+    Config_SPI_DDR = Config_SPI_DO | Config_SPI_SCK | Config_Flash_CS;
 
     // Default to SCK, DO low and both CS lines high
-    Config_SPI_PORT = Config_Flash_CS | Config_LCD_CS;
+    Config_SPI_PORT = Config_Flash_CS;
+
+#if defined Config_LCD_CS
+    Config_SPI_DDR |= Config_LCD_CS;
+    Config_SPI_PORT |= Config_Flash_CS;
+#endif
 }
 
 #endif
