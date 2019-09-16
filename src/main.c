@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <avr/power.h>
+#include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "mainapp.h"
 
@@ -50,6 +51,13 @@ void FlashRead( uint32_t Address, size_t Size ) {
 int main( void ) {
     uint32_t i = 0;
 
+#if defined ATTINY10
+    // Run the attiny10 at 8MHz
+    CCP = 0xD8;
+    CLKPSR = 0;
+    OSCCAL = 0xFF;
+#endif
+
     SPI_Init( );
 
     // While DC is low pump out the LCD init commands from flash
@@ -57,13 +65,6 @@ int main( void ) {
 
     // Wait for DC to go high and put the lcd in data mode
     _delay_ms( 500 );
-
-#if defined ATTINY10
-    // Run the attiny10 as fast as it will go
-    CCP = 0xD8;
-    CLKPSR = 0;
-    OSCCAL = 0xFF;
-#endif
 
     while ( 1 ) {
         for ( i = 0; i < Config_FrameCount; i++ ) {

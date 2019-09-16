@@ -7,7 +7,7 @@
 //#define Config_SPI_HW
 #define Config_SPI_SW
 
-//#define Config_FrameDelay 41
+#define Config_FrameDelay 35
 
 #define Config_FrameSize ( 96 * 64 )
 #define Config_FrameCount 29
