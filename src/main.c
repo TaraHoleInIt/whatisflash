@@ -15,6 +15,7 @@ void FlashRead( uint32_t Address, size_t Size ) {
         SPI_SelectDisplay( );
             for ( i = 0; i < Size; i++ ) {
 #if defined Config_SPI_SW
+                // Pulse the clock line like a maniac
                 Config_SPI_PORT |= Config_SPI_SCK;
                 Config_SPI_PORT &= ~Config_SPI_SCK;
 
@@ -38,8 +39,6 @@ void FlashRead( uint32_t Address, size_t Size ) {
 
                 Config_SPI_PORT |= Config_SPI_SCK;
                 Config_SPI_PORT &= ~Config_SPI_SCK;
-#elif defined Config_SPI_USI
-                blah
 #else
                 SPI_TX( 0x00 ); // flash DI->display DO pump
 #endif
@@ -59,9 +58,23 @@ int main( void ) {
     // Wait for DC to go high and put the lcd in data mode
     _delay_ms( 500 );
 
+#if defined ATTINY10
+    // Run the attiny10 as fast as it will go
+    CCP = 0xD8;
+    CLKPSR = 0;
+    OSCCAL = 0xFF;
+#endif
+
     while ( 1 ) {
         for ( i = 0; i < Config_FrameCount; i++ ) {
-            FlashRead( Config_InitSize + 4 + ( i * Config_FrameSize ), Config_FrameSize - 4 );
+#if defined Config_LCD_CS
+            FlashRead( Config_InitSize + ( i * Config_FrameSize ), Config_FrameSize );
+#else
+            // If we have no CS line for the display that means the flash read commands
+            // will be interpreted as data and cause garbage at the top of the screen.
+            // At least the rest of the picture will be okay but a small offset and size adjustment is needed.
+            FlashRead( Config_InitSize + FlashReadCommandSize + ( i * Config_FrameSize ), Config_FrameSize - FlashReadCommandSize );
+#endif
 
 #if defined Config_FrameDelay
             _delay_ms( Config_FrameDelay );
